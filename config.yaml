@@ -1,0 +1,29 @@
+run_name: PLATE_NAME
+samplesheet: samplesheet.tsv
+fastq_dir: "READS"
+
+# Minimum gDNA read count to be passed to SPAdes
+min_gDNA_read_count: 70000
+
+# Minimum cDNA read count to be passed to Trinity
+min_cDNA_read_count: 50000
+
+# Minimum rRNA length to report in top blast hits vs pr2 DB
+# This is the length of the blast alignment not the annotated gene
+min_rRNA_blast_length: 500
+
+# Interval to use for calculating random kmer uniquess (not currently reported in summary)
+rku_gDNA_interval: 25000
+rku_cDNA_interval: 25000
+
+# Identity threshold for clustering transcriptome assembly
+cdhit_identity_threshold: 0.98
+
+# Paths to databases
+bbduk_adapters: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/bbmap/resources/adapters.fa
+pr2_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/pr2/4.14.0/pr2_version_4.14.0_SSU_taxo_long.fasta
+diamond_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/diamond/reference_proteomes.dmnd
+taxonomy_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/taxdump/fullnamelineage.dmp
+kraken2_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/kraken2/
+centrifuge_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/centrifuge/centrifugedb
+centrifuge_NT_database: /ei/public/databases/centrifuge/ncbi/nt_20200707/nt
