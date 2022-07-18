@@ -2,9 +2,6 @@ import json
 import sys
 from os import path
 
-# TODO include random kmer uniqueness stats - decide which cutoff to use (different for each sample)
-# TODO summarise diamond hits of assembled transcripts
-
 ALL_SAMPLES = sorted(snakemake.params.list_all_samples)
 gDNA_SAMPLES = sorted(snakemake.params.list_gDNA_samples)
 cDNA_SAMPLES = sorted(snakemake.params.list_cDNA_samples)
@@ -207,7 +204,7 @@ for sample in gDNA_SAMPLES:
                 if int(aln_length) > int(snakemake.params.min_rRNA_blast_length):
                     hits.append(hit + " (" + identity + "% " + aln_length + " bp)")
         
-        samples[sample]["gDNA_rRNA_top_hits"] = "; ".join(hits)
+        samples[sample]["gDNA_rRNA_top_hits"] = ", ".join(sorted(hits))
 
 for sample in cDNA_SAMPLES:
     # rRNA genes from cDNA
@@ -223,7 +220,27 @@ for sample in cDNA_SAMPLES:
                 if int(aln_length) > int(snakemake.params.min_rRNA_blast_length):
                     hits.append(hit + " (" + identity + "% " + aln_length + " bp)")
         
-        samples[sample]["cDNA_rRNA_top_hits"] = "; ".join(hits)
+        samples[sample]["cDNA_rRNA_top_hits"] = ", ".join(sorted(hits))
+
+    # Diamond/blast transcript classification
+    with open(path.join(sample, "trinity", sample + ".Trinity.cdhit.fasta.transdecoder.diamond.mapped.out"), "r") as f:
+        hits = {}
+        for line in f:
+            print(line)
+            classification = line.strip().split("\t")[0]
+
+            if classification not in hits:
+                hits[classification] = 1
+            else:
+                hits[classification] += 1
+
+        hits = sorted(hits.items(), key = lambda x: x[1], reverse = True)
+
+        formatted_hits = []
+        for hit in hits:
+            formatted_hits.append(hit[0] + " (" + str(hit[1]) + ")")
+
+        samples[sample]["diamond_hits"] = ", ".join(formatted_hits)
 
 fo = open(output_file, "w")
 
@@ -240,6 +257,7 @@ header += ["gDNA Centrifuge NT % Unclassified", "gDNA Centrifuge NT % Bacterial"
 header += ["cDNA Centrifuge NT % Unclassified", "cDNA Centrifuge NT % Bacterial", "cDNA Centrifuge NT % Eukaryotic", "cDNA Centrifuge NT Top Orders"]
 header += ["gDNA Top 18S rRNA genes"]
 header += ["cDNA Top 18S rRNA genes"]
+header += ["Transcripts best hits"]
 
 print("\t".join(header))
 fo.write("\t".join(header) + "\n")
@@ -298,12 +316,14 @@ for sample in ALL_SAMPLES:
     if sample in gDNA_SAMPLES:
         line.append(samples[sample]["gDNA_rRNA_top_hits"])
     else:
-        line.append("NA")
+        line.append("Excluded")
 
     if sample in cDNA_SAMPLES:
         line.append(samples[sample]["cDNA_rRNA_top_hits"])
+        line.append(samples[sample]["diamond_hits"])
     else:
-        line.append("NA")
+        line.append("Excluded")
+        line.append("Excluded")
 
     print("\t".join(map(str, line)))
     fo.write("\t".join(map(str, line)) + "\n")

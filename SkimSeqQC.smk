@@ -463,6 +463,7 @@ rule map_taxids:
 # found in. Limitation to this is that we are only looking at 18S genes (barrnap --kingdom euk & pr2 database) but 
 # there will still be some prokaryotic genes annotated and only looking at the best hit. Recovered genes are likely
 # to be partial whereas in a coassembly might be more complete. Organellar rRNAs are poorly represented in databases.
+# To report summary of ALL samples (gDNA+cDNA), gDNA only and cDNA only.
 rule rRNA_summary:
     input:
         top_rrna_hits_gDNA = expand(join("{sample}", "rrna", "{sample}_gDNA.rrna.blast.top.tsv"), sample=gDNA_SAMPLES),
@@ -474,6 +475,8 @@ rule rRNA_summary:
     run:
         fo = open(output.rRNA_summary, "w")
         samples_per_top_hit = {}
+        samples_per_top_hit_gDNA = {}
+        samples_per_top_hit_cDNA = {}
 
         samples = []
 
@@ -492,6 +495,10 @@ rule rRNA_summary:
                                 samples_per_top_hit[hit] = set()
                             samples_per_top_hit[hit].add(sample)
 
+                            if hit not in samples_per_top_hit_gDNA:
+                                samples_per_top_hit_gDNA[hit] = set()
+                            samples_per_top_hit_gDNA[hit].add(sample)
+
         for i in input.top_rrna_hits_cDNA:
             sample = basename(i).split("_cDNA")[0]
             samples.append(sample + "_cDNA")
@@ -507,15 +514,40 @@ rule rRNA_summary:
                                 samples_per_top_hit[hit] = set()
                             samples_per_top_hit[hit].add(sample)
 
+                            if hit not in samples_per_top_hit_cDNA:
+                                samples_per_top_hit_cDNA[hit] = set()
+                            samples_per_top_hit_cDNA[hit].add(sample)
+
         fo.write("Summary of top blast hits of SSU rRNA genes against the pr2 database\n")
         fo.write("Only considering sequences annotated by barrnap as 18S rRNA genes and blast alignments with alignment length >= " + str(params.min_rRNA_blast_length) + "\n\n")
-        fo.write("Samples considered (gDNA and cDNA results are combined):\n")
+        fo.write("\n")
+
+        fo.write("All gDNA and cDNA samples combined:\n")
         fo.write(", ".join(sorted(samples)))
 
         fo.write("\n\n")
         fo.write("pr2 gene\tNumber of samples with top hits\tSamples with top hits\n")
         for top_hit in samples_per_top_hit:
             fo.write("\t".join([top_hit, str(len(samples_per_top_hit[top_hit])), "; ".join(sorted(samples_per_top_hit[top_hit]))]) + "\n")
+
+        fo.write("\n\n")
+        fo.write("gDNA samples only:\n")
+        gDNA_samples = [basename(s).replace("_gDNA.rrna.blast.top.tsv", "") for s in input.top_rrna_hits_gDNA]
+        fo.write(", ".join(sorted(gDNA_samples)))
+        fo.write("\n\n")
+        fo.write("pr2 gene\tNumber of samples with top hits\tSamples with top hits\n")
+        for top_hit in samples_per_top_hit_gDNA:
+            fo.write("\t".join([top_hit, str(len(samples_per_top_hit_gDNA[top_hit])), "; ".join(sorted(samples_per_top_hit_gDNA[top_hit]))]) + "\n")
+
+        fo.write("\n\n")
+        fo.write("cDNA samples only:\n")
+        cDNA_samples = [basename(s).replace("_cDNA.rrna.blast.top.tsv", "") for s in input.top_rrna_hits_cDNA]
+        fo.write(", ".join(sorted(cDNA_samples)))
+        fo.write("\n\n")
+        fo.write("pr2 gene\tNumber of samples with top hits\tSamples with top hits\n")
+        for top_hit in samples_per_top_hit_cDNA:
+            fo.write("\t".join([top_hit, str(len(samples_per_top_hit_cDNA[top_hit])), "; ".join(sorted(samples_per_top_hit_cDNA[top_hit]))]) + "\n")
+
         fo.close()
 
 rule generate_summary:
