@@ -1,10 +1,10 @@
 {
     "__default__": {
-    "partition": "ei-medium,ei-long",
-    "memory": "16000",
-    "c": "4",
-    "J": "GT_Seq",
-    "time": "04:00:00"
+        "partition": "ei-medium,ei-long",
+        "memory": "16000",
+        "c": "4",
+        "J": "SkimSeqQC",
+        "time": "04:00:00"
     },
     "fastp": {
         "J": "fastp",
@@ -75,7 +75,7 @@
         "memory": "40G",
         "time": "48:00:00"
     },
-    "cdhit" :{
+    "cdhit": {
         "J": "cdhit",
         "c": "4",
         "memory": "20G",

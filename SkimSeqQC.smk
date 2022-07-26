@@ -139,11 +139,12 @@ rule centrifuge_gDNA:
         centrifuge_gDNA_done = join("centrifuge", "centrifuge_gDNA.done"),
         centrifuge_classification_out = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.out"), sample=ALL_SAMPLES, sampletype=["gDNA"])
     params:
-        centrifuge_database = config["centrifuge_database"]
+        centrifuge_database = config["centrifuge_database"],
+        centrifuge_upto = config["centrifuge_upto"]
     threads: 10
     log: "logs/centrifuge_gDNA.log"
     benchmark: "benchmarks/centrifuge_gDNA.tsv"
-    shell: "centrifuge --threads {threads} -x {params.centrifuge_database} --sample-sheet {input.centrifuge_gDNA_samplesheet} 2> {log} && touch {output.centrifuge_gDNA_done}"
+    shell: "centrifuge --threads {threads} -x {params.centrifuge_database} --upto {params.centrifuge_upto} --sample-sheet {input.centrifuge_gDNA_samplesheet} 2> {log} && touch {output.centrifuge_gDNA_done}"
 
 rule centrifuge_cDNA:
     input:
@@ -152,11 +153,12 @@ rule centrifuge_cDNA:
         centrifuge_cDNA_done = join("centrifuge", "centrifuge_cDNA.done"),
         centrifuge_classification_out = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.out"), sample=ALL_SAMPLES, sampletype=["cDNA"])
     params:
-        centrifuge_database = config["centrifuge_database"]
+        centrifuge_database = config["centrifuge_database"],
+        centrifuge_upto = config["centrifuge_upto"]
     threads: 10
     log: "logs/centrifuge_cDNA.log"
     benchmark: "benchmarks/centrifuge_cDNA.tsv"
-    shell: "centrifuge --threads {threads} -x {params.centrifuge_database} --sample-sheet {input.centrifuge_cDNA_samplesheet} 2> {log} && touch {output.centrifuge_cDNA_done}"
+    shell: "centrifuge --threads {threads} -x {params.centrifuge_database} --upto {params.centrifuge_upto} --sample-sheet {input.centrifuge_cDNA_samplesheet} 2> {log} && touch {output.centrifuge_cDNA_done}"
 
 rule centrifuge_kreport:
     input:
@@ -210,11 +212,12 @@ rule centrifuge_NT_gDNA:
         centrifuge_NT_gDNA_done = join("centrifuge_NT", "centrifuge_NT_gDNA.done"),
         centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=ALL_SAMPLES, sampletype=["gDNA"])
     params:
-        centrifuge_NT_database = config["centrifuge_NT_database"]
+        centrifuge_NT_database = config["centrifuge_NT_database"],
+        centrifuge_upto = config["centrifuge_upto"]
     threads: 10
     log: "logs/centrifuge_NT_gDNA.log"
     benchmark: "benchmarks/centrifuge_NT_gDNA.tsv"
-    shell: "centrifuge --threads {threads} -x {params.centrifuge_NT_database} --sample-sheet {input.centrifuge_NT_gDNA_samplesheet} 2> {log} && touch {output.centrifuge_NT_gDNA_done}"
+    shell: "centrifuge --threads {threads} -x {params.centrifuge_NT_database} --upto {params.centrifuge_upto} --sample-sheet {input.centrifuge_NT_gDNA_samplesheet} 2> {log} && touch {output.centrifuge_NT_gDNA_done}"
 
 rule centrifuge_NT_cDNA:
     input:
@@ -223,16 +226,17 @@ rule centrifuge_NT_cDNA:
         centrifuge_NT_cDNA_done = join("centrifuge_NT", "centrifuge_NT_cDNA.done"),
         centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=ALL_SAMPLES, sampletype=["gDNA"])
     params:
-        centrifuge_NT_database = config["centrifuge_NT_database"]
+        centrifuge_NT_database = config["centrifuge_NT_database"],
+        centrifuge_upto = config["centrifuge_upto"]
     threads: 10
     log: "logs/centrifuge_NT_cDNA.log"
     benchmark: "benchmarks/centrifuge_NT_cDNA.tsv"
-    shell: "centrifuge --threads {threads} -x {params.centrifuge_NT_database} --sample-sheet {input.centrifuge_NT_cDNA_samplesheet} 2> {log} && touch {output.centrifuge_NT_cDNA_done}"
+    shell: "centrifuge --threads {threads} -x {params.centrifuge_NT_database} --upto {params.centrifuge_upto} --sample-sheet {input.centrifuge_NT_cDNA_samplesheet} 2> {log} && touch {output.centrifuge_NT_cDNA_done}"
 
 rule centrifuge_NT_kreport:
     input:
         centrifuge_NT_done = join("centrifuge_NT", "centrifuge_NT_{sampletype}.done"),
-        centrifuge_NT_classification_out = join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.out")
+        centrifuge_NT_classification_out = join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out")
     output:
         centrifuge_NT_kreport = join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.kreport"),
         centrifuge_NT_summary = join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.summary.txt")
