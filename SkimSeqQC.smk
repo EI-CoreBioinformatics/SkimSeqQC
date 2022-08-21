@@ -141,7 +141,7 @@ rule centrifuge_gDNA:
     params:
         centrifuge_database = config["centrifuge_database"],
         centrifuge_upto = config["centrifuge_upto"]
-    threads: 10
+    threads: 16
     log: "logs/centrifuge_gDNA.log"
     benchmark: "benchmarks/centrifuge_gDNA.tsv"
     shell: "centrifuge --threads {threads} -x {params.centrifuge_database} --upto {params.centrifuge_upto} --sample-sheet {input.centrifuge_gDNA_samplesheet} 2> {log} && touch {output.centrifuge_gDNA_done}"
@@ -155,7 +155,7 @@ rule centrifuge_cDNA:
     params:
         centrifuge_database = config["centrifuge_database"],
         centrifuge_upto = config["centrifuge_upto"]
-    threads: 10
+    threads: 16
     log: "logs/centrifuge_cDNA.log"
     benchmark: "benchmarks/centrifuge_cDNA.tsv"
     shell: "centrifuge --threads {threads} -x {params.centrifuge_database} --upto {params.centrifuge_upto} --sample-sheet {input.centrifuge_cDNA_samplesheet} 2> {log} && touch {output.centrifuge_cDNA_done}"
@@ -224,7 +224,7 @@ rule centrifuge_NT_cDNA:
         centrifuge_NT_cDNA_samplesheet = "samplesheet_centrifuge_NT_cDNA.tsv"
     output:
         centrifuge_NT_cDNA_done = join("centrifuge_NT", "centrifuge_NT_cDNA.done"),
-        centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=ALL_SAMPLES, sampletype=["gDNA"])
+        centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=ALL_SAMPLES, sampletype=["cDNA"])
     params:
         centrifuge_NT_database = config["centrifuge_NT_database"],
         centrifuge_upto = config["centrifuge_upto"]
@@ -376,7 +376,14 @@ rule trinity:
     threads: 10
     log: "logs/trinity_{sample}.log"
     benchmark: "benchmarks/trinity_{sample}.tsv"
-    shell: 'source trinity-2.13.2_CBG && Trinity --full_cleanup --seqType fq --max_memory 40G --left {input.trimmed_r1} --right {input.trimmed_r2} --CPU {threads} --output {params.output_dir} > {log} 2>&1 && mkdir -p {params.output_dir} && mv {params.original_output} {params.new_output}'
+    shell:
+        """
+        source trinity-2.13.2_CBG
+        Trinity --full_cleanup --seqType fq --max_memory 40G --left {input.trimmed_r1} --right {input.trimmed_r2} --CPU {threads} --output {params.output_dir} > {log} 2>&1
+        rm -rf {params.output_dir}
+        mkdir -p {params.output_dir}
+        mv {params.original_output} {params.new_output}
+        """
 
 rule cdhit:
     input:

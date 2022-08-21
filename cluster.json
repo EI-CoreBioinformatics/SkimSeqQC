@@ -107,14 +107,14 @@
     },
     "centrifuge_gDNA": {
         "J": "centrifuge_gDNA",
-        "c": "10",
-        "memory": "100G",
+        "c": "16",
+        "memory": "120G",
         "time": "96:00:00"
     },
     "centrifuge_cDNA": {
         "J": "centrifuge_cDNA",
-        "c": "10",
-        "memory": "100G",
+        "c": "16",
+        "memory": "120G",
         "time": "96:00:00"
     },
     "centrifuge_NT_gDNA": {

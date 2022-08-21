@@ -69,6 +69,9 @@ rku_cDNA_interval: 25000
 # Identity threshold for clustering transcriptome assembly
 cdhit_identity_threshold: 0.98
 
+# How many reads to classify using centrifuge [-u/--upto <int>   stop after first <int> reads/pairs (no limit)]
+centrifuge_upto: 1000000
+
 # Paths to databases
 bbduk_adapters: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/bbmap/resources/adapters.fa
 pr2_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/pr2/4.14.0/pr2_version_4.14.0_SSU_taxo_long.fasta

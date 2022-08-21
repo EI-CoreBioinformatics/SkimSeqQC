@@ -20,7 +20,7 @@ rku_cDNA_interval: 25000
 cdhit_identity_threshold: 0.98
 
 # How many reads to classify using centrifuge [-u/--upto <int>   stop after first <int> reads/pairs (no limit)]
-centrifuge_upto: 2000000
+centrifuge_upto: 1000000
 
 # Paths to databases
 bbduk_adapters: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/bbmap/resources/adapters.fa
