@@ -314,12 +314,19 @@ for sample in ALL_SAMPLES:
     line.append(samples[sample]["cDNA_centrifuge_NT_top_orders"])
 
     if sample in gDNA_SAMPLES:
-        line.append(samples[sample]["gDNA_rRNA_top_hits"])
+        if len(samples[sample]["gDNA_rRNA_top_hits"]) == 0:
+            line.append("No genes or no  hits")
+        else:    
+            line.append(samples[sample]["gDNA_rRNA_top_hits"])
     else:
         line.append("Excluded")
 
     if sample in cDNA_SAMPLES:
-        line.append(samples[sample]["cDNA_rRNA_top_hits"])
+        if len(samples[sample]["cDNA_rRNA_top_hits"]) == 0:
+            line.append("No genes or no hits")
+        else:
+            line.append(samples[sample]["cDNA_rRNA_top_hits"])
+        
         line.append(samples[sample]["diamond_hits"])
     else:
         line.append("Excluded")
