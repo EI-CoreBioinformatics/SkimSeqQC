@@ -2,7 +2,9 @@
 
 # Maps taxonomy IDs to species names and lineages
 # Usage: python map_taxids.py fullnamelineage.dmp query_ids.txt
-# Prints to stdout: classification\tfull lineage
+# Prints to stdout: sequence_id\tspecies name\tfull lineage
+
+# Jamie McGowan 2022 <jamie.mcgowan@earlham.ac.uk>
 
 import sys
 
@@ -24,9 +26,9 @@ with open(sys.argv[2], "r") as f:
 		tax_id = l[1]
 		
 		if tax_id == "0":
-			print("Unclassified")
+			print(l[0] + "\tUnclassified")
 		else:
 			try:
-				print("\t".join(mapping[tax_id]))
+				print(l[0] + "\t" + "\t".join(mapping[tax_id]))
 			except:
 				print("MISSING ID FROM DUMPFILE ->", tax_id)

@@ -227,7 +227,7 @@ for sample in cDNA_SAMPLES:
         hits = {}
         for line in f:
             print(line)
-            classification = line.strip().split("\t")[0]
+            classification = line.strip().split("\t")[1]
 
             if classification not in hits:
                 hits[classification] = 1
