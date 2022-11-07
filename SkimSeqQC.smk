@@ -10,9 +10,9 @@ from re import split
 
 configfile: "config.yaml"
 
-FASTQ_DIR = "READS"
+FASTQ_DIR = config["fastq_dir"]
 
-ALL_SAMPLES, = glob_wildcards(join(FASTQ_DIR, "{sample,.+[^/]+}_cDNA_R1.fastq.gz"))
+ALL_SAMPLES = []
 gDNA_SAMPLES = []
 cDNA_SAMPLES = []
 
@@ -21,14 +21,23 @@ with open(config["samplesheet"], "r") as f:
     for line in f:
         line = line.strip().split("\t")
         sample = line[0]
-        gDNA_read_count = int(line[1])
-        cDNA_read_count = int(line[2])
 
-        if gDNA_read_count >= config["min_gDNA_read_count"]:
-            gDNA_SAMPLES.append(sample)
+        ALL_SAMPLES.append(sample)
 
-        if cDNA_read_count >= config["min_cDNA_read_count"]:
-            cDNA_SAMPLES.append(sample)
+        gDNA_read_count = line[1]
+        cDNA_read_count = line[2]
+
+        if gDNA_read_count != "NA":
+            gDNA_read_count = int(gDNA_read_count)
+
+            if gDNA_read_count >= config["min_gDNA_read_count"]:
+                gDNA_SAMPLES.append(sample)
+
+        if cDNA_read_count != "NA":
+            cDNA_read_count = int(cDNA_read_count)
+
+            if cDNA_read_count >= config["min_cDNA_read_count"]:
+                cDNA_SAMPLES.append(sample)
 
 summary_filename = config["run_name"] + "_summary.tsv"
 readme_filename = config["run_name"] + "_readme.txt"
@@ -103,41 +112,47 @@ rule fastp_trimmed_reads:
 
 rule make_centrifuge_samplesheets:
     input:
-        trimmed_r1 = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed.fastq.gz"),sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"]),
-        trimmed_r2 = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed.fastq.gz"),sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"])
+        trimmed_r1_cDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed.fastq.gz"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        trimmed_r2_cDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed.fastq.gz"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        trimmed_r1_gDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed.fastq.gz"),sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        trimmed_r2_gDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed.fastq.gz"),sample=gDNA_SAMPLES, sampletype=["gDNA"])
     output:
         centrifuge_gDNA_samplesheet = "samplesheet_centrifuge_gDNA.tsv",
         centrifuge_cDNA_samplesheet = "samplesheet_centrifuge_cDNA.tsv",
     run:    
-        fo_gDNA = open(output.centrifuge_gDNA_samplesheet, "w")
         fo_cDNA = open(output.centrifuge_cDNA_samplesheet, "w")
 
-        for r1, r2 in zip(input.trimmed_r1, input.trimmed_r2):
+        for r1, r2 in zip(input.trimmed_r1_cDNA, input.trimmed_r2_cDNA):
             file_basename = basename(r1)
             sample = split("_[cg]DNA", file_basename)[0]
-            if "_cDNA_" in file_basename:
-                sample_type = "cDNA"
-            else:
-                sample_type = "gDNA"
+            sample_type = "cDNA"
 
             centrifuge_output = "centrifuge/" + sample + "_"+ sample_type + "_centrifuge_classification.out"
             centrifuge_report = "centrifuge/" + sample + "_"+ sample_type + "_centrifuge_report.txt"
             line = ["2", r1, r2, centrifuge_output, centrifuge_report]
 
-            if sample_type == "gDNA":
-                fo_gDNA.write("\t".join(line) + "\n")
-            elif sample_type == "cDNA":
-                fo_cDNA.write("\t".join(line) + "\n")
-        
-        fo_gDNA.close()
+            fo_cDNA.write("\t".join(line) + "\n")
         fo_cDNA.close()
+
+        fo_gDNA = open(output.centrifuge_gDNA_samplesheet, "w")
+        for r1, r2 in zip(input.trimmed_r1_gDNA, input.trimmed_r2_gDNA):
+            file_basename = basename(r1)
+            sample = split("_[cg]DNA", file_basename)[0]
+            sample_type = "gDNA"
+
+            centrifuge_output = "centrifuge/" + sample + "_"+ sample_type + "_centrifuge_classification.out"
+            centrifuge_report = "centrifuge/" + sample + "_"+ sample_type + "_centrifuge_report.txt"
+            line = ["2", r1, r2, centrifuge_output, centrifuge_report]
+
+            fo_gDNA.write("\t".join(line) + "\n")
+        fo_gDNA.close()
 
 rule centrifuge_gDNA:
     input:
         centrifuge_gDNA_samplesheet = "samplesheet_centrifuge_gDNA.tsv"
     output:
         centrifuge_gDNA_done = join("centrifuge", "centrifuge_gDNA.done"),
-        centrifuge_classification_out = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.out"), sample=ALL_SAMPLES, sampletype=["gDNA"])
+        centrifuge_classification_out = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.out"), sample=gDNA_SAMPLES, sampletype=["gDNA"])
     params:
         centrifuge_database = config["centrifuge_database"],
         centrifuge_upto = config["centrifuge_upto"]
@@ -151,7 +166,7 @@ rule centrifuge_cDNA:
         centrifuge_cDNA_samplesheet = "samplesheet_centrifuge_cDNA.tsv"
     output:
         centrifuge_cDNA_done = join("centrifuge", "centrifuge_cDNA.done"),
-        centrifuge_classification_out = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.out"), sample=ALL_SAMPLES, sampletype=["cDNA"])
+        centrifuge_classification_out = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.out"), sample=cDNA_SAMPLES, sampletype=["cDNA"])
     params:
         centrifuge_database = config["centrifuge_database"],
         centrifuge_upto = config["centrifuge_upto"]
@@ -176,41 +191,49 @@ rule centrifuge_kreport:
 
 rule make_centrifuge_NT_samplesheets:
     input:
-        trimmed_r1 = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed.fastq.gz"),sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"]),
-        trimmed_r2 = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed.fastq.gz"),sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"])
+        trimmed_r1_cDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed.fastq.gz"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        trimmed_r2_cDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed.fastq.gz"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        trimmed_r1_gDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed.fastq.gz"),sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        trimmed_r2_gDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed.fastq.gz"),sample=gDNA_SAMPLES, sampletype=["gDNA"])
     output:
         centrifuge_NT_gDNA_samplesheet = "samplesheet_centrifuge_NT_gDNA.tsv",
         centrifuge_NT_cDNA_samplesheet = "samplesheet_centrifuge_NT_cDNA.tsv",
     run:    
-        fo_gDNA = open(output.centrifuge_NT_gDNA_samplesheet, "w")
         fo_cDNA = open(output.centrifuge_NT_cDNA_samplesheet, "w")
 
-        for r1, r2 in zip(input.trimmed_r1, input.trimmed_r2):
+        for r1, r2 in zip(input.trimmed_r1_cDNA, input.trimmed_r2_cDNA):
             file_basename = basename(r1)
             sample = split("_[cg]DNA", file_basename)[0]
-            if "_cDNA_" in file_basename:
-                sample_type = "cDNA"
-            else:
-                sample_type = "gDNA"
+            sample_type = "cDNA"
 
             centrifuge_NT_output = "centrifuge_NT/" + sample + "_"+ sample_type + "_centrifuge_NT_classification.out"
             centrifuge_NT_report = "centrifuge_NT/" + sample + "_"+ sample_type + "_centrifuge_NT_report.txt"
             line = ["2", r1, r2, centrifuge_NT_output, centrifuge_NT_report]
 
-            if sample_type == "gDNA":
-                fo_gDNA.write("\t".join(line) + "\n")
-            elif sample_type == "cDNA":
-                fo_cDNA.write("\t".join(line) + "\n")
-        
-        fo_gDNA.close()
+            fo_cDNA.write("\t".join(line) + "\n")
         fo_cDNA.close()
+
+        fo_gDNA = open(output.centrifuge_NT_gDNA_samplesheet, "w")
+
+        for r1, r2 in zip(input.trimmed_r1_gDNA, input.trimmed_r2_gDNA):
+            file_basename = basename(r1)
+            sample = split("_[cg]DNA", file_basename)[0]
+            sample_type = "gDNA"
+
+            centrifuge_NT_output = "centrifuge_NT/" + sample + "_"+ sample_type + "_centrifuge_NT_classification.out"
+            centrifuge_NT_report = "centrifuge_NT/" + sample + "_"+ sample_type + "_centrifuge_NT_report.txt"
+            line = ["2", r1, r2, centrifuge_NT_output, centrifuge_NT_report]
+
+            fo_gDNA.write("\t".join(line) + "\n")
+
+        fo_gDNA.close()
 
 rule centrifuge_NT_gDNA:
     input:
         centrifuge_NT_gDNA_samplesheet = "samplesheet_centrifuge_NT_gDNA.tsv"
     output:
         centrifuge_NT_gDNA_done = join("centrifuge_NT", "centrifuge_NT_gDNA.done"),
-        centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=ALL_SAMPLES, sampletype=["gDNA"])
+        centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=gDNA_SAMPLES, sampletype=["gDNA"])
     params:
         centrifuge_NT_database = config["centrifuge_NT_database"],
         centrifuge_upto = config["centrifuge_upto"]
@@ -224,7 +247,7 @@ rule centrifuge_NT_cDNA:
         centrifuge_NT_cDNA_samplesheet = "samplesheet_centrifuge_NT_cDNA.tsv"
     output:
         centrifuge_NT_cDNA_done = join("centrifuge_NT", "centrifuge_NT_cDNA.done"),
-        centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=ALL_SAMPLES, sampletype=["cDNA"])
+        centrifuge_NT_classification_out = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.out"), sample=cDNA_SAMPLES, sampletype=["cDNA"])
     params:
         centrifuge_NT_database = config["centrifuge_NT_database"],
         centrifuge_upto = config["centrifuge_upto"]
@@ -379,7 +402,7 @@ rule trinity:
     shell:
         """
         source trinity-2.13.2_CBG
-        Trinity --full_cleanup --seqType fq --max_memory 40G --left {input.trimmed_r1} --right {input.trimmed_r2} --CPU {threads} --output {params.output_dir} > {log} 2>&1
+        Trinity --full_cleanup --seqType fq --max_memory 70G --left {input.trimmed_r1} --right {input.trimmed_r2} --CPU {threads} --output {params.output_dir} > {log} 2>&1
         rm -rf {params.output_dir}
         mkdir -p {params.output_dir}
         mv {params.original_output} {params.new_output}
@@ -563,24 +586,31 @@ rule rRNA_summary:
 
 rule generate_summary:
     input:
-        trimmed_gDNA_R1 = expand(join("{sample}", "trimmed_reads", "{sample}_gDNA_R1.trimmed.fastq.gz"), sample=ALL_SAMPLES),
-        trimmed_gDNA_R2 = expand(join("{sample}", "trimmed_reads", "{sample}_gDNA_R2.trimmed.fastq.gz"), sample=ALL_SAMPLES),
-        trimmed_cDNA_R1 = expand(join("{sample}", "trimmed_reads", "{sample}_cDNA_R1.trimmed.fastq.gz"), sample=ALL_SAMPLES),
-        trimmed_cDNA_R2 = expand(join("{sample}", "trimmed_reads", "{sample}_cDNA_R2.trimmed.fastq.gz"), sample=ALL_SAMPLES),
-        rku_gDNA = expand(join("{sample}", "{sample}_rku_gDNA.tsv"), sample=ALL_SAMPLES),
-        rku_cDNA = expand(join("{sample}", "{sample}_rku_cDNA.tsv"), sample=ALL_SAMPLES),
-        trimmed_r1_qc = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed_fastqc.html"),sample=ALL_SAMPLES, sampletype=["cDNA","gDNA"]),
-        trimmed_r2_qc = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed_fastqc.html"),sample=ALL_SAMPLES, sampletype=["cDNA","gDNA"]),
-        ihist = expand(join("{sample}", "merged_reads", "{sample}_{sampletype}.ihist.txt"), sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"]),
+        trimmed_gDNA_R1 = expand(join("{sample}", "trimmed_reads", "{sample}_gDNA_R1.trimmed.fastq.gz"), sample=gDNA_SAMPLES),
+        trimmed_gDNA_R2 = expand(join("{sample}", "trimmed_reads", "{sample}_gDNA_R2.trimmed.fastq.gz"), sample=gDNA_SAMPLES),
+        trimmed_cDNA_R1 = expand(join("{sample}", "trimmed_reads", "{sample}_cDNA_R1.trimmed.fastq.gz"), sample=cDNA_SAMPLES),
+        trimmed_cDNA_R2 = expand(join("{sample}", "trimmed_reads", "{sample}_cDNA_R2.trimmed.fastq.gz"), sample=cDNA_SAMPLES),
+        rku_gDNA = expand(join("{sample}", "{sample}_rku_gDNA.tsv"), sample=gDNA_SAMPLES),
+        rku_cDNA = expand(join("{sample}", "{sample}_rku_cDNA.tsv"), sample=cDNA_SAMPLES),
+        trimmed_r1_qc_gDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed_fastqc.html"),sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        trimmed_r2_qc_gDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed_fastqc.html"),sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        trimmed_r1_qc_cDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R1.trimmed_fastqc.html"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        trimmed_r2_qc_cDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_R2.trimmed_fastqc.html"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        ihist_gDNA = expand(join("{sample}", "merged_reads", "{sample}_{sampletype}.ihist.txt"), sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        ihist_cDNA = expand(join("{sample}", "merged_reads", "{sample}_{sampletype}.ihist.txt"), sample=cDNA_SAMPLES, sampletype=["cDNA"]),
         quast_report = expand(join("{sample}", "quast", "report.txt"), sample=gDNA_SAMPLES),
         top_rrna_hits_gDNA = expand(join("{sample}", "rrna", "{sample}_gDNA.rrna.blast.top.tsv"), sample=gDNA_SAMPLES),
         top_rrna_hits_cDNA = expand(join("{sample}", "rrna", "{sample}_cDNA.rrna.blast.top.tsv"), sample=cDNA_SAMPLES),
         rRNA_summary = rRNA_summary_filename,
         mapped_diamond_classifications = expand(join("{sample}", "trinity", "{sample}.Trinity.cdhit.fasta.transdecoder.diamond.mapped.out"), sample=cDNA_SAMPLES),
-        centrifuge_kreport = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.kreport"),sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"]),
-        centrifuge_NT_kreport = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.kreport"),sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"]),
-        kraken2_reports = expand(join("kraken2", "{sample}_{sampletype}_kraken.kreport"), sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"]),
-        fastp_json = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_trimmed.fastp.json"), sample=ALL_SAMPLES, sampletype=["cDNA", "gDNA"])
+        centrifuge_kreport_gDNA = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.kreport"),sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        centrifuge_kreport_cDNA = expand(join("centrifuge", "{sample}_{sampletype}_centrifuge_classification.kreport"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        centrifuge_NT_kreport_gDNA = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.kreport"),sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        centrifuge_NT_kreport_cDNA = expand(join("centrifuge_NT", "{sample}_{sampletype}_centrifuge_NT_classification.kreport"),sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        kraken2_reports_gDNA = expand(join("kraken2", "{sample}_{sampletype}_kraken.kreport"), sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        kraken2_reports_cDNA = expand(join("kraken2", "{sample}_{sampletype}_kraken.kreport"), sample=cDNA_SAMPLES, sampletype=["cDNA"]),
+        fastp_json_gDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_trimmed.fastp.json"), sample=gDNA_SAMPLES, sampletype=["gDNA"]),
+        fastp_json_cDNA = expand(join("{sample}", "trimmed_reads", "{sample}_{sampletype}_trimmed.fastp.json"), sample=cDNA_SAMPLES, sampletype=["cDNA"])
     output:
         summary = summary_filename
     params:

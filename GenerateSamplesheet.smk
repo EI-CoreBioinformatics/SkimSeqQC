@@ -4,6 +4,7 @@
 
 import sys
 from os.path import join
+from os import listdir
 
 configfile: "config.yaml"
 
@@ -11,13 +12,21 @@ FASTQ_DIR = config["fastq_dir"]
 
 ALL_SAMPLES, = glob_wildcards(join(FASTQ_DIR, '{sample,.+[^/]+}_cDNA_R1.fastq.gz'))
 
+cDNA_SAMPLES = [f.split("_cDNA_R1.fastq.gz")[0] for f in listdir(FASTQ_DIR) if f.endswith("_cDNA_R1.fastq.gz")]
+gDNA_SAMPLES = [f.split("_gDNA_R1.fastq.gz")[0] for f in listdir(FASTQ_DIR) if f.endswith("_gDNA_R1.fastq.gz")]
+
+ALL_SAMPLES = set(cDNA_SAMPLES + gDNA_SAMPLES)
+
 rule generate_samplesheet:
     input:
-        fastp_json_files = expand(join(FASTQ_DIR, '{sample}_{type}.fastp.json'),sample=ALL_SAMPLES, type=["gDNA", "cDNA"])
+        fastp_cDNA = expand(join(FASTQ_DIR, '{sample}_{type}.fastp.json'), sample = cDNA_SAMPLES, type = ["cDNA"]),
+        fastp_gDNA = expand(join(FASTQ_DIR, '{sample}_{type}.fastp.json'), sample = gDNA_SAMPLES, type = ["gDNA"])
     output:
         samplesheet = config["samplesheet"]
     params:
-        samples = expand("{sample}", sample=ALL_SAMPLES),
+        samples = ALL_SAMPLES,
+        cDNA_samples = cDNA_SAMPLES,
+        gDNA_samples = gDNA_SAMPLES,
         fastq_dir = FASTQ_DIR
     script:
         "scripts/generate_samplesheet.py"

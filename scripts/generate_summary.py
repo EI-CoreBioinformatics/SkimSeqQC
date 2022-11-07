@@ -17,179 +17,247 @@ for sample in ALL_SAMPLES:
     data = ""
     
     # gDNA raw reads
-    with open(path.join("READS", sample + "_gDNA.fastp.json")) as f:
-        data = json.load(f)
+    if sample in gDNA_SAMPLES:
+        with open(path.join("READS", sample + "_gDNA.fastp.json")) as f:
+            data = json.load(f)
 
-    total_reads = data["summary"]["before_filtering"]["total_reads"]
-    total_bases = data["summary"]["before_filtering"]["total_bases"]
+        total_reads = data["summary"]["before_filtering"]["total_reads"]
+        total_bases = data["summary"]["before_filtering"]["total_bases"]
 
-    samples[sample]["gDNA_reads"] = total_reads
-    samples[sample]["gDNA_bases"] = total_bases
+        samples[sample]["gDNA_reads"] = total_reads
+        samples[sample]["gDNA_bases"] = total_bases
+    else:
+        samples[sample]["gDNA_reads"] = "NA"
+        samples[sample]["gDNA_bases"] = "NA"
 
     # cDNA raw reads
-    with open(path.join("READS", sample + "_cDNA.fastp.json")) as f:
-        data = json.load(f)
+    if sample in cDNA_SAMPLES:
+        with open(path.join("READS", sample + "_cDNA.fastp.json")) as f:
+            data = json.load(f)
 
-    total_reads = data["summary"]["before_filtering"]["total_reads"]
-    total_bases = data["summary"]["before_filtering"]["total_bases"]
+        total_reads = data["summary"]["before_filtering"]["total_reads"]
+        total_bases = data["summary"]["before_filtering"]["total_bases"]
 
-    samples[sample]["cDNA_reads"] = total_reads
-    samples[sample]["cDNA_bases"] = total_bases
+        samples[sample]["cDNA_reads"] = total_reads
+        samples[sample]["cDNA_bases"] = total_bases
+    else:
+        samples[sample]["cDNA_reads"] = "NA"
+        samples[sample]["cDNA_bases"] = "NA"
 
     # gDNA trimmed reads
-    with open(path.join(sample, "trimmed_reads", sample + "_gDNA_trimmed.fastp.json")) as f:
-        data = json.load(f)
+    if sample in gDNA_SAMPLES:
+        with open(path.join(sample, "trimmed_reads", sample + "_gDNA_trimmed.fastp.json")) as f:
+            data = json.load(f)
 
-    total_reads = data["summary"]["before_filtering"]["total_reads"]
-    total_bases = data["summary"]["before_filtering"]["total_bases"]
-    duplication_rate = data["duplication"]["rate"]
+        total_reads = data["summary"]["before_filtering"]["total_reads"]
+        total_bases = data["summary"]["before_filtering"]["total_bases"]
+        duplication_rate = data["duplication"]["rate"]
 
-    samples[sample]["gDNA_trimmed_reads"] = total_reads
-    samples[sample]["gDNA_trimmed_bases"] = total_bases
-    samples[sample]["gDNA_trimmed_bases_retained"] = (total_bases / samples[sample]["gDNA_bases"]) * 100
-    samples[sample]["gDNA_trimmed_duplication_rate"] = duplication_rate
+        samples[sample]["gDNA_trimmed_reads"] = total_reads
+        samples[sample]["gDNA_trimmed_bases"] = total_bases
 
-    samples[sample]["gDNA_insert_size_fastp"] = data["insert_size"]["peak"]
+        if samples[sample]["gDNA_bases"] == 0:
+            samples[sample]["gDNA_trimmed_bases_retained"] = "NA"
+        else:
+            samples[sample]["gDNA_trimmed_bases_retained"] = (total_bases / samples[sample]["gDNA_bases"]) * 100
+        samples[sample]["gDNA_trimmed_duplication_rate"] = duplication_rate
 
-    with open(path.join(sample, "merged_reads", sample + "_gDNA.ihist.txt")) as f:
-        f.readline() # Ignore first line (mean insert size)
-        median_insert_size = f.readline().strip().split("\t")[1]
-        samples[sample]["gDNA_insert_size_bbmerge"] = median_insert_size
+        samples[sample]["gDNA_insert_size_fastp"] = data["insert_size"]["peak"]
+
+        with open(path.join(sample, "merged_reads", sample + "_gDNA.ihist.txt")) as f:
+            f.readline() # Ignore first line (mean insert size)
+            median_insert_size = f.readline().strip().split("\t")[1]
+            samples[sample]["gDNA_insert_size_bbmerge"] = median_insert_size
+    else:
+        samples[sample]["gDNA_trimmed_reads"] = "NA"
+        samples[sample]["gDNA_trimmed_bases"] = "NA"
+        samples[sample]["gDNA_trimmed_bases_retained"] = "NA"
+        samples[sample]["gDNA_trimmed_duplication_rate"] = "NA"
+        samples[sample]["gDNA_insert_size_fastp"] = "NA"
+        samples[sample]["gDNA_insert_size_bbmerge"] = "NA"
 
     # cDNA trimmed reads
-    with open(path.join(sample, "trimmed_reads", sample + "_cDNA_trimmed.fastp.json")) as f:
-        data = json.load(f)
+    if sample in cDNA_SAMPLES:
+        with open(path.join(sample, "trimmed_reads", sample + "_cDNA_trimmed.fastp.json")) as f:
+            data = json.load(f)
 
-    total_reads = data["summary"]["before_filtering"]["total_reads"]
-    total_bases = data["summary"]["before_filtering"]["total_bases"]
-    duplication_rate = data["duplication"]["rate"]
+        total_reads = data["summary"]["before_filtering"]["total_reads"]
+        total_bases = data["summary"]["before_filtering"]["total_bases"]
+        duplication_rate = data["duplication"]["rate"]
 
-    samples[sample]["cDNA_trimmed_reads"] = total_reads
-    samples[sample]["cDNA_trimmed_bases"] = total_bases
-    samples[sample]["cDNA_trimmed_bases_retained"] = (total_bases / samples[sample]["cDNA_bases"]) * 100
-    samples[sample]["cDNA_trimmed_duplication_rate"] = duplication_rate
+        samples[sample]["cDNA_trimmed_reads"] = total_reads
+        samples[sample]["cDNA_trimmed_bases"] = total_bases
 
-    samples[sample]["cDNA_insert_size_fastp"] = data["insert_size"]["peak"]
+        if samples[sample]["cDNA_bases"] == 0:
+            samples[sample]["cDNA_trimmed_bases_retained"] = "NA"
+        else:
+            samples[sample]["cDNA_trimmed_bases_retained"] = (total_bases / samples[sample]["cDNA_bases"]) * 100
+        samples[sample]["cDNA_trimmed_duplication_rate"] = duplication_rate
 
-    with open(path.join(sample, "merged_reads", sample + "_cDNA.ihist.txt")) as f:
-        f.readline() # Ignore first line (mean insert size)
-        median_insert_size = f.readline().strip().split("\t")[1]
-        samples[sample]["cDNA_insert_size_bbmerge"] = median_insert_size
+        samples[sample]["cDNA_insert_size_fastp"] = data["insert_size"]["peak"]
+
+        with open(path.join(sample, "merged_reads", sample + "_cDNA.ihist.txt")) as f:
+            f.readline() # Ignore first line (mean insert size)
+            median_insert_size = f.readline().strip().split("\t")[1]
+            samples[sample]["cDNA_insert_size_bbmerge"] = median_insert_size
+    else:
+        samples[sample]["cDNA_trimmed_reads"] = "NA"
+        samples[sample]["cDNA_trimmed_bases"] = "NA"
+        samples[sample]["cDNA_trimmed_bases_retained"] = "NA"
+        samples[sample]["cDNA_trimmed_duplication_rate"] = "NA"
+        samples[sample]["cDNA_insert_size_fastp"] = "NA"
+        samples[sample]["cDNA_insert_size_bbmerge"] = "NA"
 
     # kraken2 gDNA
-    with open(path.join("kraken2", sample + "_gDNA_kraken.summary"), "r") as f:
-        line = f.readline() # ignore first line header
-        line = f.readline().strip().split("\t")
+    if sample in gDNA_SAMPLES:
+        with open(path.join("kraken2", sample + "_gDNA_kraken.summary"), "r") as f:
+            line = f.readline() # ignore first line header
+            line = f.readline().strip().split("\t")
 
-        unclassified = line[0]
-        bacterial = line[1]
-        eukaryotic = line[2]
+            unclassified = line[0]
+            bacterial = line[1]
+            eukaryotic = line[2]
 
-        if len(line) == 4:
-            top_orders = line[3]
-        else:
-            top_orders = "NA"
-        
-        samples[sample]["gDNA_kraken2_unclassified"] = unclassified
-        samples[sample]["gDNA_kraken2_bacterial"] = bacterial
-        samples[sample]["gDNA_kraken2_eukaryotic"] = eukaryotic
-        samples[sample]["gDNA_kraken2_top_orders"] = top_orders
+            if len(line) == 4:
+                top_orders = line[3]
+            else:
+                top_orders = "NA"
+
+            samples[sample]["gDNA_kraken2_unclassified"] = unclassified
+            samples[sample]["gDNA_kraken2_bacterial"] = bacterial
+            samples[sample]["gDNA_kraken2_eukaryotic"] = eukaryotic
+            samples[sample]["gDNA_kraken2_top_orders"] = top_orders
+    else:
+            samples[sample]["gDNA_kraken2_unclassified"] = "NA"
+            samples[sample]["gDNA_kraken2_bacterial"] = "NA"
+            samples[sample]["gDNA_kraken2_eukaryotic"] = "NA"
+            samples[sample]["gDNA_kraken2_top_orders"] = "NA"
 
     # kraken2 cDNA
-    with open(path.join("kraken2", sample + "_cDNA_kraken.summary"), "r") as f:
-        line = f.readline() # ignore first line header
-        line = f.readline().strip().split("\t")
+    if sample in cDNA_SAMPLES:
+        with open(path.join("kraken2", sample + "_cDNA_kraken.summary"), "r") as f:
+            line = f.readline() # ignore first line header
+            line = f.readline().strip().split("\t")
 
-        unclassified = line[0]
-        bacterial = line[1]
-        eukaryotic = line[2]
+            unclassified = line[0]
+            bacterial = line[1]
+            eukaryotic = line[2]
 
-        if len(line) == 4:
-            top_orders = line[3]
-        else:
-            top_orders = "NA"
-        
-        samples[sample]["cDNA_kraken2_unclassified"] = unclassified
-        samples[sample]["cDNA_kraken2_bacterial"] = bacterial
-        samples[sample]["cDNA_kraken2_eukaryotic"] = eukaryotic
-        samples[sample]["cDNA_kraken2_top_orders"] = top_orders
+            if len(line) == 4:
+                top_orders = line[3]
+            else:
+                top_orders = "NA"
+
+            samples[sample]["cDNA_kraken2_unclassified"] = unclassified
+            samples[sample]["cDNA_kraken2_bacterial"] = bacterial
+            samples[sample]["cDNA_kraken2_eukaryotic"] = eukaryotic
+            samples[sample]["cDNA_kraken2_top_orders"] = top_orders
+    else:
+            samples[sample]["cDNA_kraken2_unclassified"] = "NA"
+            samples[sample]["cDNA_kraken2_bacterial"] = "NA"
+            samples[sample]["cDNA_kraken2_eukaryotic"] = "NA"
+            samples[sample]["cDNA_kraken2_top_orders"] = "NA"
 
     # Centrifuge gDNA
-    with open(path.join("centrifuge", sample + "_gDNA_centrifuge_classification.summary.txt"), "r") as f:
-        line = f.readline() # ignore first line header
-        line = f.readline().strip().split("\t")
+    if sample in gDNA_SAMPLES:
+        with open(path.join("centrifuge", sample + "_gDNA_centrifuge_classification.summary.txt"), "r") as f:
+            line = f.readline() # ignore first line header
+            line = f.readline().strip().split("\t")
 
-        unclassified = line[0]
-        bacterial = line[1]
-        eukaryotic = line[2]
+            unclassified = line[0]
+            bacterial = line[1]
+            eukaryotic = line[2]
 
-        if len(line) == 4:
-            top_orders = line[3]
-        else:
-            top_orders = "NA"
-        
-        samples[sample]["gDNA_centrifuge_unclassified"] = unclassified
-        samples[sample]["gDNA_centrifuge_bacterial"] = bacterial
-        samples[sample]["gDNA_centrifuge_eukaryotic"] = eukaryotic
-        samples[sample]["gDNA_centrifuge_top_orders"] = top_orders
+            if len(line) == 4:
+                top_orders = line[3]
+            else:
+                top_orders = "NA"
+
+            samples[sample]["gDNA_centrifuge_unclassified"] = unclassified
+            samples[sample]["gDNA_centrifuge_bacterial"] = bacterial
+            samples[sample]["gDNA_centrifuge_eukaryotic"] = eukaryotic
+            samples[sample]["gDNA_centrifuge_top_orders"] = top_orders
+    else:
+            samples[sample]["gDNA_centrifuge_unclassified"] = "NA"
+            samples[sample]["gDNA_centrifuge_bacterial"] = "NA"
+            samples[sample]["gDNA_centrifuge_eukaryotic"] = "NA"
+            samples[sample]["gDNA_centrifuge_top_orders"] = "NA"
 
     # Centrifuge cDNA
-    with open(path.join("centrifuge", sample + "_cDNA_centrifuge_classification.summary.txt"), "r") as f:
-        line = f.readline() # ignore first line header
-        line = f.readline().strip().split("\t")
+    if sample in cDNA_SAMPLES:
+        with open(path.join("centrifuge", sample + "_cDNA_centrifuge_classification.summary.txt"), "r") as f:
+            line = f.readline() # ignore first line header
+            line = f.readline().strip().split("\t")
 
-        unclassified = line[0]
-        bacterial = line[1]
-        eukaryotic = line[2]
+            unclassified = line[0]
+            bacterial = line[1]
+            eukaryotic = line[2]
 
-        if len(line) == 4:
-            top_orders = line[3]
-        else:
-            top_orders = "NA"
-        
-        samples[sample]["cDNA_centrifuge_unclassified"] = unclassified
-        samples[sample]["cDNA_centrifuge_bacterial"] = bacterial
-        samples[sample]["cDNA_centrifuge_eukaryotic"] = eukaryotic
-        samples[sample]["cDNA_centrifuge_top_orders"] = top_orders
+            if len(line) == 4:
+                top_orders = line[3]
+            else:
+                top_orders = "NA"
+
+            samples[sample]["cDNA_centrifuge_unclassified"] = unclassified
+            samples[sample]["cDNA_centrifuge_bacterial"] = bacterial
+            samples[sample]["cDNA_centrifuge_eukaryotic"] = eukaryotic
+            samples[sample]["cDNA_centrifuge_top_orders"] = top_orders
+    else:
+            samples[sample]["cDNA_centrifuge_unclassified"] = "NA"
+            samples[sample]["cDNA_centrifuge_bacterial"] = "NA"
+            samples[sample]["cDNA_centrifuge_eukaryotic"] = "NA"
+            samples[sample]["cDNA_centrifuge_top_orders"] = "NA"
 
     # Centrifuge NT gDNA
-    with open(path.join("centrifuge_NT", sample + "_gDNA_centrifuge_NT_classification.summary.txt"), "r") as f:
-        line = f.readline() # ignore first line header
-        line = f.readline().strip().split("\t")
+    if sample in gDNA_SAMPLES:
+        with open(path.join("centrifuge_NT", sample + "_gDNA_centrifuge_NT_classification.summary.txt"), "r") as f:
+            line = f.readline() # ignore first line header
+            line = f.readline().strip().split("\t")
 
-        unclassified = line[0]
-        bacterial = line[1]
-        eukaryotic = line[2]
+            unclassified = line[0]
+            bacterial = line[1]
+            eukaryotic = line[2]
 
-        if len(line) == 4:
-            top_orders = line[3]
-        else:
-            top_orders = "NA"
-        
-        samples[sample]["gDNA_centrifuge_NT_unclassified"] = unclassified
-        samples[sample]["gDNA_centrifuge_NT_bacterial"] = bacterial
-        samples[sample]["gDNA_centrifuge_NT_eukaryotic"] = eukaryotic
-        samples[sample]["gDNA_centrifuge_NT_top_orders"] = top_orders
+            if len(line) == 4:
+                top_orders = line[3]
+            else:
+                top_orders = "NA"
+
+            samples[sample]["gDNA_centrifuge_NT_unclassified"] = unclassified
+            samples[sample]["gDNA_centrifuge_NT_bacterial"] = bacterial
+            samples[sample]["gDNA_centrifuge_NT_eukaryotic"] = eukaryotic
+            samples[sample]["gDNA_centrifuge_NT_top_orders"] = top_orders
+    else:
+            samples[sample]["gDNA_centrifuge_NT_unclassified"] = "NA"
+            samples[sample]["gDNA_centrifuge_NT_bacterial"] = "NA"
+            samples[sample]["gDNA_centrifuge_NT_eukaryotic"] = "NA"
+            samples[sample]["gDNA_centrifuge_NT_top_orders"] = "NA"
 
     # Centrifuge NT cDNA
-    with open(path.join("centrifuge_NT", sample + "_cDNA_centrifuge_NT_classification.summary.txt"), "r") as f:
-        line = f.readline() # ignore first line header
-        line = f.readline().strip().split("\t")
+    if sample in cDNA_SAMPLES:
+        with open(path.join("centrifuge_NT", sample + "_cDNA_centrifuge_NT_classification.summary.txt"), "r") as f:
+            line = f.readline() # ignore first line header
+            line = f.readline().strip().split("\t")
 
-        unclassified = line[0]
-        bacterial = line[1]
-        eukaryotic = line[2]
+            unclassified = line[0]
+            bacterial = line[1]
+            eukaryotic = line[2]
 
-        if len(line) == 4:
-            top_orders = line[3]
-        else:
-            top_orders = "NA"
-        
-        samples[sample]["cDNA_centrifuge_NT_unclassified"] = unclassified
-        samples[sample]["cDNA_centrifuge_NT_bacterial"] = bacterial
-        samples[sample]["cDNA_centrifuge_NT_eukaryotic"] = eukaryotic
-        samples[sample]["cDNA_centrifuge_NT_top_orders"] = top_orders
-    
+            if len(line) == 4:
+                top_orders = line[3]
+            else:
+                top_orders = "NA"
+
+            samples[sample]["cDNA_centrifuge_NT_unclassified"] = unclassified
+            samples[sample]["cDNA_centrifuge_NT_bacterial"] = bacterial
+            samples[sample]["cDNA_centrifuge_NT_eukaryotic"] = eukaryotic
+            samples[sample]["cDNA_centrifuge_NT_top_orders"] = top_orders
+    else:
+            samples[sample]["cDNA_centrifuge_NT_unclassified"] = "NA"
+            samples[sample]["cDNA_centrifuge_NT_bacterial"] = "NA"
+            samples[sample]["cDNA_centrifuge_NT_eukaryotic"] = "NA"
+            samples[sample]["cDNA_centrifuge_NT_top_orders"] = "NA"
+
 for sample in gDNA_SAMPLES:
     # rRNA genes from gDNA
     with open(path.join(sample, "rrna", sample + "_gDNA.rrna.blast.top.tsv"), "r") as f:
@@ -319,7 +387,7 @@ for sample in ALL_SAMPLES:
         else:    
             line.append(samples[sample]["gDNA_rRNA_top_hits"])
     else:
-        line.append("Excluded")
+        line.append("NA")
 
     if sample in cDNA_SAMPLES:
         if len(samples[sample]["cDNA_rRNA_top_hits"]) == 0:
@@ -329,8 +397,8 @@ for sample in ALL_SAMPLES:
         
         line.append(samples[sample]["diamond_hits"])
     else:
-        line.append("Excluded")
-        line.append("Excluded")
+        line.append("NA")
+        line.append("NA")
 
     print("\t".join(map(str, line)))
     fo.write("\t".join(map(str, line)) + "\n")

@@ -19,18 +19,28 @@ for sample in ALL_SAMPLES:
     samples[sample] = {}
 
     # Get gDNA read count
-    data = ""
-    with open(path.join(FASTQ_DIR, sample + "_gDNA.fastp.json"), "r") as f:
-        data = json.load(f)
+    if sample in snakemake.params.gDNA_samples:
+        data = ""
 
-    samples[sample]["gDNA_read_count"] = data["summary"]["before_filtering"]["total_reads"]
+        with open(path.join(FASTQ_DIR, sample + "_gDNA.fastp.json"), "r") as f:
+            data = json.load(f)
+
+        samples[sample]["gDNA_read_count"] = data["summary"]["before_filtering"]["total_reads"]
+
+    else:
+        samples[sample]["gDNA_read_count"] = "NA"
 
     # Get cDNA read count
-    data = ""
-    with open(path.join(FASTQ_DIR, sample + "_cDNA.fastp.json"), "r") as f:
-        data = json.load(f)
+    if sample in snakemake.params.cDNA_samples:
+        data = ""
 
-    samples[sample]["cDNA_read_count"] = data["summary"]["before_filtering"]["total_reads"]
+        with open(path.join(FASTQ_DIR, sample + "_cDNA.fastp.json"), "r") as f:
+            data = json.load(f)
+
+        samples[sample]["cDNA_read_count"] = data["summary"]["before_filtering"]["total_reads"]
+
+    else:
+        samples[sample]["cDNA_read_count"] = "NA"
 
 fo.write("\t".join(["Sample", "gDNA_Raw_Reads", "cDNA_Raw_Reads"]) + "\n")
 

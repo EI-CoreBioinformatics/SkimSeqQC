@@ -4,7 +4,7 @@
 # Usage: python map_taxids.py fullnamelineage.dmp query_ids.txt
 # Prints to stdout: sequence_id\tspecies name\tfull lineage
 
-# Jamie McGowan 2022 <jamie.mcgowan@earlham.ac.uk>
+# Jamie McGowan 2020 <jamie.mcgowan@earlham.ac.uk>
 
 import sys
 

@@ -72,7 +72,7 @@
     "trinity": {
         "J": "trinity",
         "c": "10",
-        "memory": "40G",
+        "memory": "70G",
         "time": "48:00:00"
     },
     "cdhit": {
@@ -120,14 +120,16 @@
     "centrifuge_NT_gDNA": {
         "J": "centrifuge_NT_gDNA",
         "c": "16",
-        "memory": "500G",
-        "time": "96:00:00"
+        "memory": "550G",
+        "time": "96:00:00",
+        "partition": "ei-largemem"
     },
     "centrifuge_NT_cDNA": {
         "J": "centrifuge_NT_cDNA",
         "c": "16",
-        "memory": "500G",
-        "time": "96:00:00"
+        "memory": "550G",
+        "time": "96:00:00",
+        "partition": "ei-largemem"
     },
     "centrifuge_kreport": {
         "J": "centrifuge_kreport",
@@ -185,7 +187,8 @@
     "diamond_transcriptome": {
         "J": "diamond_transcriptome",
         "c": "8",
-        "memory": "20G"
+        "memory": "30G",
+        "time": "24:00:00"
     },
     "map_taxids": {
         "J": "map_taxids",
