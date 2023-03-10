@@ -349,7 +349,7 @@ rule spades:
     threads: 8
     log: "logs/spades_{sample}.log"
     benchmark: "benchmarks/spades_{sample}.tsv"
-    shell: "/ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Software/SPAdes-3.15.3-Linux/bin/spades.py --sc -1 {input.trimmed_r1} -2 {input.trimmed_r2} --threads {threads} -o {params.out_dir} > {log} 2>&1 && mv {params.original_contigs} {params.new_contigs} && mv {params.original_scaffolds} {params.new_scaffolds}"
+    shell: "spades.py --sc -1 {input.trimmed_r1} -2 {input.trimmed_r2} --threads {threads} -o {params.out_dir} > {log} 2>&1 && mv {params.original_contigs} {params.new_contigs} && mv {params.original_scaffolds} {params.new_scaffolds}"
 
 rule quast:
     input:
