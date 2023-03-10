@@ -18,32 +18,8 @@ snakemake -j 100 --snakefile GenerateSamplesheet.smk --cluster-config cluter.jso
 Then run the full pipeline:
 
 ```
-snakemake -j 100 --snakefile ../SkimSeqQC.smk --cluster-config ../cluster.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time} --exclude={cluster.exclude}"
+snakemake -j 100 --snakefile SkimSeqQC.smk --cluster-config cluster.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time} --exclude={cluster.exclude}"
 ```
-
-
-Example sbatch script:
-
-```
-#!/bin/sh   
-#SBATCH -N 1
-#SBATCH -c 1
-#SBATCH --mail-user=NNNNNN
-#SBATCH --job-name=snakemake
-#SBATCH -o snakemake_stdout_stderr.txt
-#SBATCH --mail-type=END
-
-source snakemake-5.9.1_CBG
-source fastqc-0.11.9
-source package 65df873c-d601-44ba-ac61-64644b55dfbb #quast
-source package /tgac/software/testing/bin/centrifuge-1.0.4_6cc874e
-
-snakemake -j 100 --snakefile GenerateSamplesheet.smk --cluster-config cluster.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time} --exclude={cluster.exclude}"
- 
-snakemake -j 150 --snakefile SkimSeqQC.smk --cluster-config cluster.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time} --exclude={cluster.exclude}"
-
-```
-
 
 Example `config.yaml` file:
 
