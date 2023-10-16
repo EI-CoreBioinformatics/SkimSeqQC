@@ -82,7 +82,7 @@ rule bbduk_gDNA:
     threads: 2
     log: "logs/bbduk_gDNA_{sample}.log"
     benchmark: "benchmarks/bbduk_gDNA_{sample}.tsv"
-    shell: "source bbmap-38.87_CBG && bbduk.sh ref={params.adapters} ktrim=r k=21 mink=7 hdist=1 qtrim=lr trimq=10 maq=20 minlength=50 tpe tbo in1={input.r1} in2={input.r2} out1={output.trimmed_r1} out2={output.trimmed_r2} t={threads} > {log} 2>&1"
+    shell: "bbduk.sh ref={params.adapters} ktrim=r k=21 mink=7 hdist=1 qtrim=lr trimq=10 maq=20 minlength=50 tpe tbo in1={input.r1} in2={input.r2} out1={output.trimmed_r1} out2={output.trimmed_r2} t={threads} > {log} 2>&1"
 
 rule bbduk_cDNA:
     input: 
@@ -96,7 +96,7 @@ rule bbduk_cDNA:
     threads: 2
     log: "logs/bbduk_cDNA_{sample}.log"
     benchmark: "benchmarks/bbduk_cDNA_{sample}.tsv"
-    shell: "source bbmap-38.87_CBG && bbduk.sh t={threads} in1={input.r1} in2={input.r2} out=stdout.fq minlength=50 ktrim=l k=14 mink=5 hdist=1 hdist2=0 rcomp=f tbo literal=AAGCAGTGGTATCAACGCAGAGT,TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG,GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG,GCCTCCCTCGCGCCATCAGAGATGTGTATAAGAGACAG,GCCTTGCCAGCCCGCTCAGAGATGTGTATAAGAGACAG 2> {log} | bbduk.sh t={threads} in=stdin.fq int=t out1={output.trimmed_r1} out2={output.trimmed_r2} minlength=50 ktrim=r k=14 mink=5 hdist=1 hdist2=0 rcomp=f qtrim=lr trimq=10 maq=20 tbo tpe trimpolygright=5 trimpolya=5 literal=CTGTCTCTTATACACATCTGACGCTGCCGACGA,CTGTCTCTTATACACATCTCCGAGCCCACGAGAC,CTGTCTCTTATACACATCTCTGATGGCGCGAGGGAGGC,CTGTCTCTTATACACATCTCTGAGCGGGCTGGCAAGGC,ATCTCGTATGCCGTCTTCTGCTTG,ACTCTGCGTTGATACCACTGCTT,AGATCGGAAGAGCACACG,TGGAATTCTCGGGTGCCAAGG 2>>{log}"
+    shell: "bbduk.sh t={threads} in1={input.r1} in2={input.r2} out=stdout.fq minlength=50 ktrim=l k=14 mink=5 hdist=1 hdist2=0 rcomp=f tbo literal=AAGCAGTGGTATCAACGCAGAGT,TCGTCGGCAGCGTCAGATGTGTATAAGAGACAG,GTCTCGTGGGCTCGGAGATGTGTATAAGAGACAG,GCCTCCCTCGCGCCATCAGAGATGTGTATAAGAGACAG,GCCTTGCCAGCCCGCTCAGAGATGTGTATAAGAGACAG 2> {log} | bbduk.sh t={threads} in=stdin.fq int=t out1={output.trimmed_r1} out2={output.trimmed_r2} minlength=50 ktrim=r k=14 mink=5 hdist=1 hdist2=0 rcomp=f qtrim=lr trimq=10 maq=20 tbo tpe trimpolygright=5 trimpolya=5 literal=CTGTCTCTTATACACATCTGACGCTGCCGACGA,CTGTCTCTTATACACATCTCCGAGCCCACGAGAC,CTGTCTCTTATACACATCTCTGATGGCGCGAGGGAGGC,CTGTCTCTTATACACATCTCTGAGCGGGCTGGCAAGGC,ATCTCGTATGCCGTCTTCTGCTTG,ACTCTGCGTTGATACCACTGCTT,AGATCGGAAGAGCACACG,TGGAATTCTCGGGTGCCAAGG 2>>{log}"
 
 rule fastp_trimmed_reads:
     input:
@@ -108,7 +108,7 @@ rule fastp_trimmed_reads:
     threads: 1
     log: "logs/fastp_trimmed_{sample}_{sampletype}.log"
     benchmark: "benchmarks/fastp_trimmed_{sample}_{sampletype}.tsv"
-    shell: "source fastp-0.23.2 && fastp --in1 {input.r1_trimmed} --in2 {input.r2_trimmed} --thread {threads} -j {output.fastp_json} -h {output.fastp_html} > {log} 2>&1"
+    shell: "fastp --in1 {input.r1_trimmed} --in2 {input.r2_trimmed} --thread {threads} -j {output.fastp_json} -h {output.fastp_html} > {log} 2>&1"
 
 rule make_centrifuge_samplesheets:
     input:
@@ -280,7 +280,7 @@ rule rku_gDNA:
         interval = config["rku_gDNA_interval"]
     log: "logs/bbcountunique_gDNA_{sample}.log"
     benchmark: "benchmarks/bbcountunique_gDNA_{sample}.tsv"
-    shell: "source bbmap-38.87_CBG && bbcountunique.sh in1={input.trimmed_r1} in2={input.trimmed_r2} out={output.rku_gDNA} interval={params.interval} percent=t > {log} 2>&1"
+    shell: "bbcountunique.sh in1={input.trimmed_r1} in2={input.trimmed_r2} out={output.rku_gDNA} interval={params.interval} percent=t > {log} 2>&1"
 
 rule rku_cDNA:
     input:
@@ -292,7 +292,7 @@ rule rku_cDNA:
         interval = config["rku_cDNA_interval"]
     log: "logs/bbcountunique_cDNA_{sample}.log"
     benchmark: "benchmarks/bbcountunique_cDNA_{sample}.tsv"
-    shell: "source bbmap-38.87_CBG && bbcountunique.sh in1={input.trimmed_r1} in2={input.trimmed_r2} out={output.rku_cDNA} interval={params.interval} percent=t > {log} 2>&1"
+    shell: "bbcountunique.sh in1={input.trimmed_r1} in2={input.trimmed_r2} out={output.rku_cDNA} interval={params.interval} percent=t > {log} 2>&1"
 
 rule fastqc:
     input:
@@ -316,7 +316,7 @@ rule bbmerge:
     threads: 2
     log: "logs/bbmerge_{sampletype}_{sample}.log"
     benchmark: "benchmarks/bbmerge_{sampletype}_{sample}.tsv"
-    shell: "source bbmap-38.87_CBG && bbmerge.sh in1={input.trimmed_r1} in2={input.trimmed_r2} out={output.merged_reads} ihist={output.ihist} t={threads} > {log} 2>&1"
+    shell: "bbmerge.sh in1={input.trimmed_r1} in2={input.trimmed_r2} out={output.merged_reads} ihist={output.ihist} t={threads} > {log} 2>&1"
 
 # TODO UPDATE KRAKEN2 / move parse_kreport.py python script
 rule kraken2:
@@ -332,7 +332,7 @@ rule kraken2:
     threads: 8
     log: "logs/kraken2_{sampletype}_{sample}.log"
     benchmark: "benchmarks/kraken2_{sampletype}_{sample}.tsv"
-    shell: "source kraken2-2.0.8 && kraken2 --threads {threads} --report {output.kraken_report} --db {params.kraken2_database} --paired {input.trimmed_r1} {input.trimmed_r2} > {output.kraken_classification} 2> {log} && parse_kreport.py {output.kraken_report} > {output.kraken_summary}"
+    shell: "kraken2 --threads {threads} --report {output.kraken_report} --db {params.kraken2_database} --paired {input.trimmed_r1} {input.trimmed_r2} > {output.kraken_classification} 2> {log} && parse_kreport.py {output.kraken_report} > {output.kraken_summary}"
 
 rule spades:
     input:
@@ -371,7 +371,7 @@ rule barrnap_gDNA:
     threads: 2
     log: "logs/barrnap_gDNA_{sample}.log"
     benchmark: "benchmarks/barrnap_gDNA_{sample}.tsv"
-    shell: "source barrnap-0.9 && barrnap --kingdom euk --threads {threads} --outseq {output.rrna} {input.scaffolds} > {log} 2>&1"
+    shell: "barrnap --kingdom euk --threads {threads} --outseq {output.rrna} {input.scaffolds} > {log} 2>&1"
 
 # TODO move print_best_blast_hits.py python script
 rule pr2_blast_gDNA:
@@ -384,7 +384,7 @@ rule pr2_blast_gDNA:
         db = config["pr2_database"]
     threads: 2
     benchmark: "benchmarks/pr2_blast_gDNA_{sample}.tsv"
-    shell: "source blast-2.11.0_CBG && blastn -query {input.rrna} -db {params.db} -outfmt 6 -out {output.hits} -num_threads {threads} && print_best_blast_hits.py {output.hits} > {output.top_hits}"
+    shell: "blastn -query {input.rrna} -db {params.db} -outfmt 6 -out {output.hits} -num_threads {threads} && print_best_blast_hits.py {output.hits} > {output.top_hits}"
 
 rule trinity:
     input:
@@ -401,7 +401,6 @@ rule trinity:
     benchmark: "benchmarks/trinity_{sample}.tsv"
     shell:
         """
-        source trinity-2.13.2_CBG
         Trinity --full_cleanup --seqType fq --max_memory 70G --left {input.trimmed_r1} --right {input.trimmed_r2} --CPU {threads} --output {params.output_dir} > {log} 2>&1
         rm -rf {params.output_dir}
         mkdir -p {params.output_dir}
@@ -418,7 +417,7 @@ rule cdhit:
     threads: 4
     log: "logs/cdhit_{sample}.log"
     benchmark: "benchmarks/cdhit_{sample}.log"
-    shell: "source cd-hit-4.8.1 && cd-hit-est -o {output.transcriptome_cdhit} -c {params.identity_threshold} -i {input.transcriptome} -p 1 -d 0 -b 3 -T {threads}  > {log} 2>&1"    
+    shell: "cd-hit-est -o {output.transcriptome_cdhit} -c {params.identity_threshold} -i {input.transcriptome} -p 1 -d 0 -b 3 -T {threads}  > {log} 2>&1"    
     
 rule barrnap_cDNA:
     input:
@@ -428,7 +427,7 @@ rule barrnap_cDNA:
     threads: 2
     log: "logs/barrnap_cDNA_{sample}.log"
     benchmark: "benchmarks/barrnap_cDNA_{sample}.tsv"
-    shell: "source barrnap-0.9 && barrnap --kingdom euk --threads {threads} --outseq {output.rrna} {input.transcriptome_cdhit} > {log} 2>&1"
+    shell: "barrnap --kingdom euk --threads {threads} --outseq {output.rrna} {input.transcriptome_cdhit} > {log} 2>&1"
 
 # TODO move print_best_blast_hits.py python script
 rule pr2_blast_cDNA:
@@ -441,7 +440,7 @@ rule pr2_blast_cDNA:
         db = config["pr2_database"]
     threads: 2
     benchmark: "benchmarks/pr2_blast_cDNA_{sample}.tsv"
-    shell: "source blast-2.11.0_CBG && blastn -query {input.rrna} -db {params.db} -outfmt 6 -out {output.hits} -num_threads {threads} && print_best_blast_hits.py {output.hits} > {output.top_hits}"
+    shell: "blastn -query {input.rrna} -db {params.db} -outfmt 6 -out {output.hits} -num_threads {threads} && print_best_blast_hits.py {output.hits} > {output.top_hits}"
 
 rule transdecoder_LongOrfs:
     input:
@@ -452,7 +451,7 @@ rule transdecoder_LongOrfs:
         output_dir = directory(join("{sample}", "trinity"))
     log: "logs/transdecoder_LongOrfs_{sample}.log"
     benchmark: "benchmarks/transdecoder_LongOrfs_{sample}.tsv"
-    shell: "source transdecoder-5.5.0_CBG && TransDecoder.LongOrfs -t {input.transcriptome_cdhit} -m 60 --output_dir {params.output_dir} > {log} 2>&1"
+    shell: "TransDecoder.LongOrfs -t {input.transcriptome_cdhit} -m 60 --output_dir {params.output_dir} > {log} 2>&1"
 
 rule transdecoder_Predict:
     input:
@@ -466,7 +465,7 @@ rule transdecoder_Predict:
         new_output = join("{sample}", "trinity")
     log: "logs/transdecoder_Predict_{sample}.log"
     benchmark: "benchmarks/transdecoder_Predict_{sample}.tsv"
-    shell: "source transdecoder-5.5.0_CBG && TransDecoder.Predict -t {input.transcriptome_cdhit} --output_dir {params.output_dir} > {log} 2>&1 && mv {params.original_output} {params.new_output}"
+    shell: "TransDecoder.Predict -t {input.transcriptome_cdhit} --output_dir {params.output_dir} > {log} 2>&1 && mv {params.original_output} {params.new_output}"
 
 rule diamond_transcriptome:
     input:
@@ -478,7 +477,7 @@ rule diamond_transcriptome:
     threads: 8
     log: "logs/diamond_transcriptome_{sample}.log"
     benchmark: "benchmarks/diamond_transcriptome_{sample}.log"
-    shell: "source diamond-2.0.14 && diamond blastp --query {input.proteins} --outfmt 102 --sensitive --max-target-seqs 1 --evalue 1e-25 --threads 16 --db {params.diamond_database} > {output.classifications}"
+    shell: "diamond blastp --query {input.proteins} --outfmt 102 --sensitive --max-target-seqs 1 --evalue 1e-25 --threads 16 --db {params.diamond_database} > {output.classifications}"
 
 # TODO move map_taxids.py python script
 rule map_taxids:
@@ -497,7 +496,7 @@ rule map_taxids:
 # found in. Limitation to this is that we are only looking at 18S genes (barrnap --kingdom euk & pr2 database) but 
 # there will still be some prokaryotic genes annotated and only looking at the best hit. Recovered genes are likely
 # to be partial whereas in a coassembly might be more complete. Organellar rRNAs are poorly represented in databases.
-# To report summary of ALL samples (gDNA+cDNA), gDNA only and cDNA only.
+# To report summary of ALL samples (gDNA+cDNA), gDNA only, and cDNA only.
 rule rRNA_summary:
     input:
         top_rrna_hits_gDNA = expand(join("{sample}", "rrna", "{sample}_gDNA.rrna.blast.top.tsv"), sample=gDNA_SAMPLES),

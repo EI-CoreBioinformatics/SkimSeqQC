@@ -12,13 +12,13 @@ First run the `GenerateSamplesheet.smk` pipeline which just runs fastp on the ra
 
 
 ```
-snakemake -j 100 --snakefile GenerateSamplesheet.smk --cluster-config cluter.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time} --exclude={cluster.exclude}"
+snakemake -j 100 -p --snakefile GenerateSamplesheet.smk --cluster-config cluter.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time}"
 ```
 
 Then run the full pipeline:
 
 ```
-snakemake -j 100 --snakefile SkimSeqQC.smk --cluster-config cluster.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time} --exclude={cluster.exclude}"
+snakemake -j 100 -p --snakefile SkimSeqQC.smk --cluster-config cluster.json --latency-wait 60 --cluster "sbatch -p {cluster.partition} -c {cluster.c} --mem={cluster.memory} --job-name={cluster.J} --time={cluster.time}"
 ```
 
 Example `config.yaml` file:

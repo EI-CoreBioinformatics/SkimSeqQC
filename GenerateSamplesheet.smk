@@ -41,4 +41,4 @@ rule fastp:
     threads: 1
     log: "logs/fastp_{sample}_{type}.log"
     benchmark: "benchmarks/fastp_{sample}_{type}.tsv"
-    shell: "source fastp-0.23.2 && fastp --in1 {input.raw_read1} --in2 {input.raw_read2} --thread {threads} -j {output.fastp_json} -h {output.fastp_html} > {log} 2>&1"
+    shell: "fastp --in1 {input.raw_read1} --in2 {input.raw_read2} --thread {threads} -j {output.fastp_json} -h {output.fastp_html} > {log} 2>&1"
