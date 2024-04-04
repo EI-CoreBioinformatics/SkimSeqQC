@@ -16,7 +16,7 @@ From: ubuntu:latest
     /opt/software/conda/bin/conda config --add channels bioconda
     /opt/software/conda/bin/conda config --add channels conda-forge
 
-    /opt/software/conda/bin/conda create -p /opt/software/conda-env -y fastp bbmap fastqc spades quast barrnap blast trinity cd-hit transdecoder diamond kraken2
+    /opt/software/conda/bin/conda create -p /opt/software/conda-env -y fastp bbmap fastqc spades quast barrnap blast trinity=2.15.1 cd-hit transdecoder diamond kraken2 minimap2 samtools hisat2 qualimap seqtk
     /opt/software/conda/bin/conda clean --all --yes
 
     wget https://github.com/DaehwanKimLab/centrifuge/archive/refs/tags/v1.0.4.zip

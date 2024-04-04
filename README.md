@@ -42,18 +42,25 @@ min_rRNA_blast_length: 500
 rku_gDNA_interval: 25000
 rku_cDNA_interval: 25000
 
+# Map gDNA reads against the corresponding genome assembly
+map_gDNA: True
+
+# Map cDNA reads against the corresponding genome assembly
+map_cDNA: True
+
 # Identity threshold for clustering transcriptome assembly
 cdhit_identity_threshold: 0.98
 
-# How many reads to classify using centrifuge [-u/--upto <int>   stop after first <int> reads/pairs (no limit)]
+# How many reads to classify using centrifuge [-u/--upto <int> stop after first <int> reads/pairs (no limit)]
 centrifuge_upto: 1000000
 
 # Paths to databases
 bbduk_adapters: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/bbmap/resources/adapters.fa
-pr2_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/pr2/4.14.0/pr2_version_4.14.0_SSU_taxo_long.fasta
+pr2_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/pr2/5.0.0/pr2_version_5.0.0_SSU_taxo_long.fasta
 diamond_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/diamond/reference_proteomes.dmnd
 taxonomy_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/taxdump/fullnamelineage.dmp
 kraken2_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/kraken2/
 centrifuge_database: /ei/projects/e/e5f1ee13-d3bf-4fec-8be8-38c6ad26aac3/data/results/CB-GENANNO-476_DToL_Protists/Reference/databases/centrifuge/centrifugedb
 centrifuge_NT_database: /ei/public/databases/centrifuge/ncbi/nt_20200707/nt
+
 ```

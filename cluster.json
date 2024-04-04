@@ -71,7 +71,7 @@
     },
     "trinity": {
         "J": "trinity",
-        "c": "10",
+        "c": "8",
         "memory": "70G",
         "time": "48:00:00"
     },
@@ -121,14 +121,14 @@
         "J": "centrifuge_NT_gDNA",
         "c": "16",
         "memory": "550G",
-        "time": "96:00:00",
+        "time": "144:00:00",
         "partition": "ei-largemem"
     },
     "centrifuge_NT_cDNA": {
         "J": "centrifuge_NT_cDNA",
         "c": "16",
         "memory": "550G",
-        "time": "96:00:00",
+        "time": "144:00:00",
         "partition": "ei-largemem"
     },
     "centrifuge_kreport": {
@@ -189,6 +189,19 @@
         "c": "8",
         "memory": "30G",
         "time": "24:00:00"
+    },
+    "minimap2_gDNA": {
+        "J": "minimap2",
+        "c":  "4",
+        "time": "12:00:00"
+    },
+    "hisat2_build": {
+        "J": "hisat2_build",
+        "c": "1"
+    },
+    "hisat2": {
+        "J": "hisat2",
+        "c": "4"
     },
     "map_taxids": {
         "J": "map_taxids",

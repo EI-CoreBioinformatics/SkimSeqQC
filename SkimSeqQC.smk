@@ -66,9 +66,21 @@ if "-n" not in sys.argv and "--dry-run" not in sys.argv:
         fo.write(c + ": " + str(config[c]) + "\n")
     fo.close()
 
+
+TARGETS = [summary_filename]
+
+if config["map_gDNA"]:
+    TARGETS.append(expand(join("{sample}", "{sample}_gDNA_alignment.flagstat"), sample=gDNA_SAMPLES))
+
+# Can only run hisat2 on samples that meet min cDNA read count AND min gDNA read count
+if config["map_cDNA"]:
+    for sample in cDNA_SAMPLES:
+        if sample in gDNA_SAMPLES:
+            TARGETS.append(expand(join("{sample}", "{sample}.hisat2_summary.txt"), sample=[sample]))
+
 rule all:
     input:
-        summary = summary_filename
+        TARGETS
 
 rule bbduk_gDNA:
     input: 
@@ -351,9 +363,21 @@ rule spades:
     benchmark: "benchmarks/spades_{sample}.tsv"
     shell: "spades.py --sc -1 {input.trimmed_r1} -2 {input.trimmed_r2} --threads {threads} -o {params.out_dir} > {log} 2>&1 && mv {params.original_contigs} {params.new_contigs} && mv {params.original_scaffolds} {params.new_scaffolds}"
 
-rule quast:
+rule seqtk_seq:
     input:
         scaffolds = join("{sample}", "assembly", "{sample}.scaffolds.fasta")
+    output:
+        filtered_scaffolds = join("{sample}", "assembly", "{sample}.scaffolds.1000.fasta")
+    params:
+        min_length = 1000
+    threads: 1
+    benchmark: "benchmarks/seqtk_seq_{sample}.tsv"
+    shell: "seqtk seq -l 70 -L {params.min_length} {input.scaffolds} > {output.filtered_scaffolds}"
+
+rule quast:
+    input:
+        scaffolds = join("{sample}", "assembly", "{sample}.scaffolds.fasta"),
+        filtered_scaffolds = join("{sample}", "assembly", "{sample}.scaffolds.1000.fasta")
     output:
         quast_report = join("{sample}", "quast", "report.txt")
     params:
@@ -361,7 +385,44 @@ rule quast:
     threads: 1
     log: "logs/quast_{sample}.log"
     benchmark: "benchmarks/quast_{sample}.tsv"
-    shell: "quast -t {threads} -o {params.out_dir} {input}  > {log} 2>&1"
+    shell: "quast -t {threads} -o {params.out_dir} {input.scaffolds} {input.filtered_scaffolds} > {log} 2>&1"
+
+rule minimap2_gDNA:
+    input:
+        scaffolds = join("{sample}", "assembly", "{sample}.scaffolds.fasta"),
+        trimmed_r1 = join("{sample}", "trimmed_reads", "{sample}_gDNA_R1.trimmed.fastq.gz"),
+        trimmed_r2 = join("{sample}", "trimmed_reads", "{sample}_gDNA_R2.trimmed.fastq.gz")
+    output:
+        gDNA_alignment = join("{sample}", "{sample}_gDNA_alignment.bam"),
+        gDNA_alignment_flagstat = join("{sample}", "{sample}_gDNA_alignment.flagstat"),
+    threads: 4
+    log: "logs/minimap2_gDNA_{sample}.log"
+    benchmark: "benchmarks/minimap2_gDNA_{sample}.tsv"
+    shell: "minimap2 -t {threads} -ax sr {input.scaffolds} {input.trimmed_r1} {input.trimmed_r2} | samtools sort -@ {threads} -o {output.gDNA_alignment} && samtools index -@ {threads} {output.gDNA_alignment} && samtools flagstat -@ {threads} {output.gDNA_alignment} > {output.gDNA_alignment_flagstat}"
+
+rule hisat2_build:
+    input:
+        scaffolds = join("{sample}", "assembly", "{sample}.scaffolds.fasta")
+    output:
+        hisat2_index_done = join("{sample}", "assembly", "hisat2_build.done")
+    threads: 1
+    log: "logs/hisat2_build_{sample}.log"
+    benchmark: "benchmarks/hisat2_build_{sample}.tsv"
+    shell: "hisat2-build -p {threads} {input.scaffolds} {input.scaffolds} && touch {output.hisat2_index_done}"
+
+rule hisat2:
+    input:
+        hisat2_index_done = join("{sample}", "assembly", "hisat2_build.done"),
+        scaffolds = join("{sample}", "assembly", "{sample}.scaffolds.fasta"),
+        trimmed_r1 = join("{sample}", "trimmed_reads", "{sample}_cDNA_R1.trimmed.fastq.gz"),
+        trimmed_r2 = join("{sample}", "trimmed_reads", "{sample}_cDNA_R2.trimmed.fastq.gz")
+    output:
+        cDNA_alignment = join("{sample}", "{sample}_cDNA_alignment.bam"),
+        hisat2_summary = join("{sample}", "{sample}.hisat2_summary.txt")
+    threads: 4
+    log: "logs/hisat2_{sample}.log"
+    benchmark: "benchmarks/hisat2_{sample}.tsv"
+    shell: "hisat2 -q -p {threads} --dta --summary-file {output.hisat2_summary} -t -x {input.scaffolds} -1 {input.trimmed_r1} -2 {input.trimmed_r2} | samtools sort -@ {threads} -O BAM -o {output.cDNA_alignment} && samtools index -@ {threads} {output.cDNA_alignment}"
 
 rule barrnap_gDNA:
     input:
@@ -396,7 +457,7 @@ rule trinity:
         output_dir = directory(join("{sample}", "trinity")),
         original_output = join("{sample}", "trinity.Trinity.fasta"),
         new_output = join("{sample}", "trinity", "{sample}.Trinity.fasta")
-    threads: 10
+    threads: 8
     log: "logs/trinity_{sample}.log"
     benchmark: "benchmarks/trinity_{sample}.tsv"
     shell:
@@ -446,7 +507,7 @@ rule transdecoder_LongOrfs:
     input:
         transcriptome_cdhit = join("{sample}", "trinity", "{sample}.Trinity.cdhit.fasta")
     output:
-        orfs = join("{sample}", "trinity", "longest_orfs.pep")
+        orfs = join("{sample}", "trinity", "{sample}.Trinity.cdhit.fasta.transdecoder_dir", "longest_orfs.pep")
     params:
         output_dir = directory(join("{sample}", "trinity"))
     log: "logs/transdecoder_LongOrfs_{sample}.log"
@@ -456,7 +517,7 @@ rule transdecoder_LongOrfs:
 rule transdecoder_Predict:
     input:
         transcriptome_cdhit = join("{sample}", "trinity", "{sample}.Trinity.cdhit.fasta"),
-        orfs = join("{sample}", "trinity", "longest_orfs.pep")
+	orfs = join("{sample}", "trinity", "{sample}.Trinity.cdhit.fasta.transdecoder_dir", "longest_orfs.pep")
     output:
         proteins = join("{sample}", "trinity", "{sample}.Trinity.cdhit.fasta.transdecoder.pep")
     params:
@@ -465,7 +526,7 @@ rule transdecoder_Predict:
         new_output = join("{sample}", "trinity")
     log: "logs/transdecoder_Predict_{sample}.log"
     benchmark: "benchmarks/transdecoder_Predict_{sample}.tsv"
-    shell: "TransDecoder.Predict -t {input.transcriptome_cdhit} --output_dir {params.output_dir} > {log} 2>&1 && mv {params.original_output} {params.new_output}"
+    shell: "TransDecoder.Predict -t {input.transcriptome_cdhit} --output_dir {params.output_dir} > {log}"
 
 rule diamond_transcriptome:
     input:
